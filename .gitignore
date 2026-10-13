@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+# data & artefacts (regenerate with `make data` / `make train`)
+data/raw/*.csv
+data/raw/*.zip
+mlruns/
+mlflow.db
+mlartifacts/
+models/*
+!models/.gitkeep
+monitoring/*.db
+reports/figures/*.png
+reports/*.json
+reports/*.csv

@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    env_file: [{path: .env, required: false}]
+    volumes: [./models:/app/models, ./monitoring:/app/monitoring, ./configs:/app/configs:ro]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  dashboard:
+    build: .
+    command: ["streamlit", "run", "dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
+    ports: ["8501:8501"]
+    env_file: [{path: .env, required: false}]
+    volumes: [./models:/app/models:ro, ./reports:/app/reports:ro, ./data:/app/data:ro, ./monitoring:/app/monitoring, ./configs:/app/configs:ro]
+    depends_on: [api]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8501/_stcore/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  trainer:            # one-off: docker compose --profile train run --rm trainer
+    profiles: ["train"]
+    build: .
+    command: ["python", "-m", "pmip.cli", "train"]
+    volumes: [./models:/app/models, ./reports:/app/reports, ./data:/app/data, ./mlflow.db:/app/mlflow.db, ./configs:/app/configs:ro]

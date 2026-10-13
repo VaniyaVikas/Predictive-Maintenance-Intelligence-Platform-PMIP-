@@ -1,0 +1,41 @@
+# Central configuration for PMIP. Override the file path with PMIP_CONFIG.
+seed: 42
+
+paths:
+  raw_data: data/raw/ai4i2020.csv
+  models_dir: models
+  reports_dir: reports
+  monitoring_db: monitoring/monitoring.db
+  mlflow_uri: sqlite:///mlflow.db
+
+split:                 # stratified on `machine_failure` (see docs/DATA.md for why not chronological)
+  test_size: 0.15
+  val_size: 0.15
+
+training:
+  models: [dummy, logistic_regression, random_forest, xgboost, lightgbm]
+  tune_models: [xgboost, lightgbm]   # RandomizedSearchCV on the training split only
+  tuning_enabled: true
+  tuning_n_iter: 20
+  cv_folds: 5
+  selection_metric: average_precision  # measured on the validation split
+  threshold_beta: 2.0                  # F-beta objective; beta>1 weighs recall (missed failures) more
+  threshold_min_precision: 0.0         # optional floor on precision when picking the threshold
+  bootstrap_samples: 300
+
+anomaly:
+  n_estimators: 200
+  flag_percentile: 0.99   # flag rows scoring above the 99th percentile of normal training rows
+
+risk:                     # bands for the calibrated failure probability
+  medium: 0.20
+  high: 0.50
+
+monitoring:
+  psi_warning: 0.10
+  psi_alert: 0.25
+  ks_alpha: 0.01
+  min_samples: 30
+
+api:
+  max_batch_size: 1000
